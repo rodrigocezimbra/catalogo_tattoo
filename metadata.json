@@ -1,0 +1,5 @@
+{
+  "name": "Cezimbra Tattoo Studio",
+  "description": "A web application for browsing and managing the tattoo catalog of Cezimbra Tattoo Studio, featuring a public gallery and a comprehensive admin panel for content management.",
+  "requestFramePermissions": []
+}
