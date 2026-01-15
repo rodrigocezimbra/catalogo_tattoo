@@ -211,7 +211,7 @@ const CatalogPage: React.FC = () => {
         }
     }, [page, shuffledIds]);
 
-    const whatsappText = selectedItem ? encodeURIComponent(`Olá! Tenho interesse em reservar a tatuagem "${selectedItem.nome}".`) : '';
+    const whatsappText = selectedItem ? encodeURIComponent(`Olá! Tenho interesse em reservar a tatuagem "${selectedItem.nome}".\n\nImagem de referência: ${window.location.origin}${selectedItem.imagem_url || ''}`) : '';
     const whatsappLink = `https://api.whatsapp.com/send?phone=${settings?.whatsapp || '5566992156546'}&text=${whatsappText}`;
 
     return (

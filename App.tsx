@@ -119,23 +119,71 @@ const App: React.FC = () => {
 const Navbar: React.FC = () => {
     const { settings, cart, setCartOpen, session } = useApp();
     const location = useLocation();
-    
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
     const isAdminRoute = location.pathname.startsWith('/admin');
+
+    const menuItems = [
+        { name: 'Conheça nosso trabalho', url: 'https://cezimbratattoo.vercel.app' },
+        { name: 'Fazer orçamento de tatuagem', url: 'https://cezimbratattoo.vercel.app/fazer_tattoo.html' },
+        { name: 'Guia de Cuidados', url: 'https://cezimbratattoo.vercel.app/guia-cuidados.html' },
+        { name: 'Remoção a Laser', url: 'https://cezimbratattoo.vercel.app/remover_tattoo.html' },
+        { name: 'Curso de tatuagem', url: 'https://cezimbratattoo.vercel.app/curso-tatuagem.html' }
+    ];
 
     return (
         <header className="bg-black/50 backdrop-blur-lg sticky top-0 z-40 shadow-lg shadow-brand-gold/10">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-                    <Link to="/" className="text-2xl md:text-3xl font-bold font-cinzel text-brand-gold-500 tracking-widest transition-opacity hover:opacity-80">
-                        {settings?.nome_empresa || "Cezimbra Tattoo"}
-                    </Link>
                     <div className="flex items-center space-x-4">
+                        {/* Mobile menu button */}
+                        <button 
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            className="md:hidden text-gray-300 hover:text-brand-gold-400 focus:outline-none"
+                            aria-label="Menu"
+                        >
+                            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                {isMenuOpen ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                                )}
+                            </svg>
+                        </button>
+                        
+                        <Link to="/" className="text-2xl md:text-3xl font-bold font-cinzel text-brand-gold-500 tracking-widest transition-opacity hover:opacity-80">
+                            {settings?.nome_empresa || "Cezimbra Tattoo"}
+                        </Link>
+                    </div>
+
+                    {/* Desktop Menu */}
+                    <div className="hidden md:flex items-center space-x-8">
+                        <div className="relative group">
+                            <button className="flex items-center space-x-1 text-gray-300 hover:text-brand-gold-400 transition-colors">
+                                <span>Menu</span>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div className="absolute right-0 mt-2 w-64 bg-gray-900/95 backdrop-blur-md rounded-lg shadow-xl py-2 z-50 hidden group-hover:block">
+                                {menuItems.map((item, index) => (
+                                    <a
+                                        key={index}
+                                        href={item.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-brand-gold-500/10 hover:text-brand-gold-400 transition-colors"
+                                    >
+                                        {item.name}
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                        
                         {session && isAdminRoute && <Link to="/" className="text-sm text-gray-300 hover:text-brand-gold-400 transition-colors">View Catalog</Link>}
                         {session && !isAdminRoute && <Link to="/admin" className="text-sm text-gray-300 hover:text-brand-gold-400 transition-colors">Admin Panel</Link>}
                         {!isAdminRoute && (
-                             <button onClick={() => setCartOpen(true)} className="relative text-gray-200 hover:text-brand-gold-400 transition-colors">
+                            <button onClick={() => setCartOpen(true)} className="relative text-gray-200 hover:text-brand-gold-400 transition-colors">
                                 <CartIcon className="w-7 h-7" />
                                 {cartItemCount > 0 && (
                                     <span className="absolute -top-2 -right-2 bg-brand-gold-500 text-brand-dark text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
@@ -145,6 +193,24 @@ const Navbar: React.FC = () => {
                             </button>
                         )}
                     </div>
+
+                    {/* Mobile Menu */}
+                    {isMenuOpen && (
+                        <div className="absolute top-20 left-0 right-0 bg-gray-900/95 backdrop-blur-md md:hidden z-50 py-2 shadow-lg">
+                            {menuItems.map((item, index) => (
+                                <a
+                                    key={index}
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block px-6 py-3 text-gray-300 hover:bg-brand-gold-500/10 hover:text-brand-gold-400 transition-colors border-b border-gray-800"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    {item.name}
+                                </a>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </header>
