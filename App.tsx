@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from './services/supabase';
 import { Session } from '@supabase/supabase-js';
 import { CartItem, CompanySettings } from './types';
 import CatalogPage from './pages/CatalogPage';
+import ProductPage from './pages/ProductPage';
+import TattooSimulatorPage from './pages/TattooSimulatorPage';
+import SharedQuotePage from './pages/SharedQuotePage';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
-import { CartIcon, CloseIcon, TrashIcon } from './components/Icons';
+import { ArrowLeftIcon, CartIcon, CloseIcon, TrashIcon } from './components/Icons';
 import { AppContext, useApp } from './context/AppContext';
 
 // --- Constants ---
-const INSTAGRAM_URL = "https://www.instagram.com/cezimbra_tattoo";
-const WHATSAPP_PHONE = "5566992156546";
-
 // --- Main App Component ---
 const App: React.FC = () => {
     const [session, setSession] = useState<Session | null>(null);
@@ -27,9 +27,6 @@ const App: React.FC = () => {
     });
     const [isCartOpen, setCartOpen] = useState(false);
     const [isInitialized, setInitialized] = useState(false);
-    const [showPromoPopup, setShowPromoPopup] = useState(false);
-    const scrollTriggeredRef = useRef(false);
-
     useEffect(() => {
         const fetchInitialData = async () => {
             const { data: { session } } = await supabase.auth.getSession();
@@ -53,28 +50,6 @@ const App: React.FC = () => {
         };
         fetchInitialData();
     }, []);
-    
-    // --- Scroll-triggered Promo Popup (once per session) ---
-    useEffect(() => {
-        const handleScroll = () => {
-            if (scrollTriggeredRef.current) return;
-            const scrolled = window.scrollY > 300;
-            if (scrolled) {
-                const alreadyShown = sessionStorage.getItem('promoPopupShown');
-                if (!alreadyShown) {
-                    setShowPromoPopup(true);
-                    sessionStorage.setItem('promoPopupShown', 'true');
-                    scrollTriggeredRef.current = true;
-                }
-            }
-        };
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const closePromoPopup = () => setShowPromoPopup(false);
-    const whatsappMessage = encodeURIComponent("Olá! Vi a promoção de 50% de desconto no site e quero saber mais detalhes.");
-    const whatsappLink = `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${whatsappMessage}`;
     
     useEffect(() => {
         localStorage.setItem('tattooCart', JSON.stringify(cart));
@@ -125,15 +100,12 @@ const App: React.FC = () => {
                 <div className="min-h-screen bg-brand-dark text-gray-100 font-roboto flex flex-col">
                     <Navbar />
                     <CartDrawer />
-                    <PromoPopup
-                        show={showPromoPopup}
-                        onClose={closePromoPopup}
-                        instagramUrl={INSTAGRAM_URL}
-                        whatsappLink={whatsappLink}
-                    />
                     <main className="flex-grow">
                         <Routes>
                             <Route path="/" element={<CatalogPage />} />
+                            <Route path="/produto/:id" element={<ProductPage />} />
+                            <Route path="/simular-tatuagem/:id" element={<TattooSimulatorPage />} />
+                            <Route path="/orcamento/:id" element={<SharedQuotePage />} />
                             <Route path="/login" element={<LoginPage />} />
                             <Route path="/admin/*" element={
                                 <ProtectedRoute>
@@ -150,67 +122,24 @@ const App: React.FC = () => {
 };
 
 // --- Layout Components (defined in App.tsx to reduce file count) ---
-const PromoPopup: React.FC<{ show: boolean; onClose: () => void; instagramUrl: string; whatsappLink: string }> = ({ show, onClose, instagramUrl, whatsappLink }) => {
-    if (!show) return null;
-    return (
-        <>
-            {/* Overlay */}
-            <div
-                className="fixed inset-0 bg-black/60 z-[60] transition-opacity duration-300"
-                style={{ opacity: show ? 1 : 0 }}
-                onClick={onClose}
-            />
-            {/* Popup */}
-            <div
-                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-brand-dark border border-brand-gold/30 rounded-xl shadow-2xl shadow-brand-gold/20 z-[70] transition-all duration-300"
-                style={{ transform: show ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.9)', opacity: show ? 1 : 0 }}
-            >
-                <div className="relative p-6">
-                    {/* Close button */}
-                    <button
-                        onClick={onClose}
-                        className="absolute top-3 right-3 text-gray-400 hover:text-brand-gold-400 transition-colors"
-                        aria-label="Fechar"
-                    >
-                        <CloseIcon className="w-5 h-5" />
-                    </button>
-                    {/* Content */}
-                    <h2 className="font-cinzel text-2xl text-brand-gold-500 mb-4">Ganhe 50% de desconto</h2>
-                    <p className="text-gray-300 text-sm mb-6 leading-relaxed">
-                        Quer ganhar 50% de desconto em qualquer tatuagem? Basta compartilhar algum post da pagina cezimbra-tattoo no instagram nos stories e marcar 5 amigos.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <a
-                            href={instagramUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 text-center"
-                        >
-                            Acessar Instagram
-                        </a>
-                        <a
-                            href={whatsappLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 text-center"
-                        >
-                            Chamar no WhatsApp
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
-};
-
  const Navbar: React.FC = () => {
     const { settings, cart, setCartOpen, session } = useApp();
     const location = useLocation();
+    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
+    const [showBackToCatalog, setShowBackToCatalog] = useState(false);
     const desktopMenuCloseTimeoutRef = useRef<number | null>(null);
     const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     const isAdminRoute = location.pathname.startsWith('/admin');
+
+    useEffect(() => {
+        const isProductPage = location.pathname.startsWith('/produto/') || location.pathname.startsWith('/simular-tatuagem/');
+        const handleScroll = () => setShowBackToCatalog(isProductPage && window.scrollY > 300);
+        handleScroll();
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [location.pathname]);
 
     const menuItems = [
         { name: 'Conheça nosso trabalho', url: 'https://cezimbratattoo.vercel.app' },
@@ -256,6 +185,19 @@ const PromoPopup: React.FC<{ show: boolean; onClose: () => void; instagramUrl: s
                             </svg>
                         </button>
                         
+                        <button
+                            type="button"
+                            onClick={() => {
+                                navigate('/');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            disabled={!showBackToCatalog}
+                            aria-label="Voltar ao catálogo"
+                            title="Voltar ao catálogo"
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center border border-brand-gold-500/40 text-brand-gold-400 transition-all duration-200 hover:bg-brand-gold-500 hover:text-brand-dark ${showBackToCatalog ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+                        >
+                            <ArrowLeftIcon className="h-4 w-4" />
+                        </button>
                         <Link to="/" className="text-2xl md:text-3xl font-bold font-cinzel text-brand-gold-500 tracking-widest transition-opacity hover:opacity-80">
                             {settings?.nome_empresa || "Cezimbra Tattoo"}
                         </Link>

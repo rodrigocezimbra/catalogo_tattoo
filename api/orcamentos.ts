@@ -1,0 +1,1 @@
+export { handleQuote as default } from './simular-tatuagem.js';

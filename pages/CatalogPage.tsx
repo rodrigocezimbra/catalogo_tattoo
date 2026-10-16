@@ -1,23 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { CatalogoItem, Categoria } from '../types';
 import { useApp } from '../context/AppContext';
-import { CloseIcon, SpinnerIcon, WhatsAppIcon, SearchIcon } from '../components/Icons';
-
-// --- Reusable UI Components ---
-const Modal: React.FC<{ isOpen: boolean; onClose: () => void; children: React.ReactNode }> = ({ isOpen, onClose, children }) => {
-    if (!isOpen) return null;
-    return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-gray-900 rounded-xl shadow-2xl shadow-brand-gold/20 border border-brand-gold/20 w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10">
-                    <CloseIcon className="w-8 h-8"/>
-                </button>
-                {children}
-            </div>
-        </div>
-    );
-};
+import { SpinnerIcon, SearchIcon } from '../components/Icons';
 
 // --- Page Components ---
 const ItemCard: React.FC<{ item: CatalogoItem; onClick: () => void }> = ({ item, onClick }) => (
@@ -77,11 +63,10 @@ const CatalogPage: React.FC = () => {
     const [categories, setCategories] = useState<Categoria[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<CatalogoItem | null>(null);
     const [filters, setFilters] = useState<{ searchTerm?: string; category?: string }>({});
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-    const { addToCart, settings } = useApp();
+    const navigate = useNavigate();
     const PAGE_SIZE = 20;
     const [showFilterBar, setShowFilterBar] = useState(true);
     const [shuffledIds, setShuffledIds] = useState<number[]>([]);
@@ -211,9 +196,6 @@ const CatalogPage: React.FC = () => {
         }
     }, [page, shuffledIds]);
 
-    const whatsappText = selectedItem ? encodeURIComponent(`Olá! Tenho interesse em reservar a tatuagem "${selectedItem.nome}".\n\nImagem de referência: ${window.location.origin}${selectedItem.imagem_url || ''}`) : '';
-    const whatsappLink = `https://api.whatsapp.com/send?phone=${settings?.whatsapp || '5566992156546'}&text=${whatsappText}`;
-
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 className="text-5xl font-cinzel text-center text-brand-gold-500 mb-4">Catálogo de Artes</h1>
@@ -248,7 +230,7 @@ const CatalogPage: React.FC = () => {
             {items.length > 0 && (
                  <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
                     {items.map(item => (
-                        <ItemCard key={item.id} item={item} onClick={() => setSelectedItem(item)} />
+                        <ItemCard key={item.id} item={item} onClick={() => navigate(`/produto/${item.id}`)} />
                     ))}
                 </div>
             )}
@@ -261,49 +243,6 @@ const CatalogPage: React.FC = () => {
 
             <div ref={lastItemElementRef} />
 
-            <Modal isOpen={!!selectedItem} onClose={() => setSelectedItem(null)}>
-                {selectedItem && (
-                    <div className="md:grid md:grid-cols-2 md:gap-6">
-                        <div className="md:col-span-1">
-                            <img src={selectedItem.imagem_base64} alt={selectedItem.nome} className="w-full h-full object-cover md:rounded-l-xl" />
-                        </div>
-                        <div className="p-8 flex flex-col justify-between">
-                            <div>
-                                <h2 className="text-4xl font-cinzel text-brand-gold-400 mb-2">{selectedItem.nome}</h2>
-                                <p className="text-2xl font-semibold text-white mb-4">R$ {selectedItem.preco.toFixed(2)}</p>
-                                <span className="inline-block bg-brand-gold-900 text-brand-gold-200 text-sm font-medium px-3 py-1 rounded-full mb-4">{selectedItem.catalogo_categorias?.nome || 'Sem categoria'}</span>
-                                <p className="text-gray-300 mb-4">{selectedItem.descricao || 'Nenhuma descrição detalhada disponível.'}</p>
-                                {selectedItem.detalhes && (
-                                    <div className="space-y-2 text-sm text-gray-400">
-                                        {selectedItem.detalhes.local && <p><strong>Local Sugerido:</strong> {selectedItem.detalhes.local}</p>}
-                                        {selectedItem.detalhes.tamanho && <p><strong>Tamanho:</strong> {selectedItem.detalhes.tamanho}</p>}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="mt-8 space-y-4">
-                                <button
-                                    onClick={() => {
-                                        addToCart(selectedItem.id);
-                                        setSelectedItem(null);
-                                     }}
-                                    className="w-full py-3 px-4 bg-brand-gold-500 text-brand-dark font-bold rounded-lg transition-transform transform hover:scale-105"
-                                >
-                                    Adicionar ao Carrinho
-                                </button>
-                                <a
-                                    href={whatsappLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="w-full flex items-center justify-center space-x-2 py-3 px-4 border-2 border-green-500 text-green-500 font-bold rounded-lg transition-all hover:bg-green-500 hover:text-white"
-                                >
-                                    <WhatsAppIcon />
-                                    <span>Reservar Horário</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </Modal>
         </div>
     );
 };
