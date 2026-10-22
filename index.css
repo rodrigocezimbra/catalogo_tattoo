@@ -21,3 +21,60 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #e8ba54;
 }
+
+@keyframes service-offer-enter {
+    from {
+        opacity: 0;
+        transform: translateX(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.service-offer-enter {
+    animation: service-offer-enter 420ms ease-out both;
+}
+
+@keyframes before-after-reveal {
+    0%, 12%, 100% {
+        clip-path: inset(0 100% 0 0);
+    }
+    48%, 64% {
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+@keyframes before-after-divider {
+    0%, 12%, 100% {
+        left: 0%;
+    }
+    48%, 64% {
+        left: 100%;
+    }
+}
+
+.before-after-reveal {
+    animation: before-after-reveal 8s ease-in-out infinite;
+}
+
+.before-after-divider {
+    animation: before-after-divider 8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .service-offer-enter,
+    .before-after-reveal,
+    .before-after-divider {
+        animation: none;
+    }
+
+    .before-after-reveal {
+        clip-path: inset(0 0 0 50%);
+    }
+
+    .before-after-divider {
+        left: 50%;
+    }
+}
